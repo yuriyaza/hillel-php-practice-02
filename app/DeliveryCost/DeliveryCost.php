@@ -7,53 +7,37 @@ class DeliveryCost
     private const WEIGHT_PRICE = 50;
     private const SIZE_PRICE = 50;
 
-    private $weight = 0;
-    private $size = 0;
+    private $productWeight;
+    private $productSize;
     private $minCost = 0;
 
-    private function isInputDataCorrect($inputData)
-    {
-        if (!is_numeric($inputData)) {
-            die("Введено некоректні дані");
-        }
-        return true;
-    }
+    private $totalCostType;
 
-    public function setWeight($weight)
+    public function setWeight($productWeight)
     {
-        if ($this->isInputDataCorrect($weight)) {
-            $this->weight = $weight;
-        }
+        $this->productWeight = $productWeight;
         return $this;
     }
 
     public function getWeight()
     {
-        return $this->weight;
+        return $this->productWeight;
     }
 
-    public function setSize($length, $width, $height)
+    public function setSize($productSize)
     {
-        if ($this->isInputDataCorrect($length) && $this->isInputDataCorrect($width) && $this->isInputDataCorrect($height)) {
-            $this->size = [
-                'length' => $length,
-                'width' => $width,
-                'height' => $height,
-            ];
-        }
+        $this->productSize = $productSize;
         return $this;
     }
 
     public function getSize()
     {
-        return $this->size;
+        return $this->productSize;
     }
 
     public function setMinCost($minCost = 0)
     {
-        if ($this->isInputDataCorrect($minCost)) {
-            $this->minCost = $minCost;
-        }
+        $this->minCost = $minCost;
         return $this;
     }
 
@@ -62,26 +46,30 @@ class DeliveryCost
         return $this->minCost;
     }
 
-    public function execute()
+    public function getTotalCostType()
     {
-        $minCost = round($this->minCost, 2);
-        $costByWeight = round($this->weight * $this::WEIGHT_PRICE, 2);
-        $costBySize = round($this->size['length'] * $this->size['width'] * $this->size['height'] / 1000 * $this::SIZE_PRICE, 2);
+        return $this->totalCostType;
+    }
 
-        if ($costByWeight == 0 || $costBySize == 0) {
-            die("Не задана вага або об'єм");
+    public function execute(): float
+    {
+        $costByWeight = $this->productWeight * $this::WEIGHT_PRICE;
+        $costBySize = $this->productSize[0] * $this->productSize[1] * $this->productSize[2] / 1000 * $this::SIZE_PRICE;
+
+        $totalCost = $this->minCost;
+        $totalCostType = "Мінімальна вартість доставки";
+
+        if ($costByWeight > $totalCost) {
+            $totalCost = $costByWeight;
+            $totalCostType = "Вартість доставки за вагою";
         }
 
-        $result = ['title' => "Мінімальна вартість доставки, зазначена продавцем:", 'cost' => $minCost];
-
-        if ($costByWeight > $result['cost']) {
-            $result = ['title' => "Вартість доставки за вагою:", 'cost' => $costByWeight];
+        if ($costBySize > $totalCost) {
+            $totalCost = $costBySize;
+            $totalCostType = "Вартість доставки за об'ємною вагою";
         }
 
-        if ($costBySize > $result['cost']) {
-            $result = ['title' => "Вартість доставки за об'ємною вагою:", 'cost' => $costBySize];
-        }
-
-        return $result;
+        $this->totalCostType = $totalCostType;
+        return $totalCost;
     }
 }
